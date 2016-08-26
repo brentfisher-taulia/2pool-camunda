@@ -27,8 +27,8 @@ class ConfirmEPRAddedTask implements JavaDelegate {
     log.debug("Entering Confirm Added")
 
     String earlyPaymentRequestId = ""
-    if (execution.hasVariable(EARLY_PAYMENT_REQUEST_ID.id))
-      earlyPaymentRequestId = execution.getVariable(EARLY_PAYMENT_REQUEST_ID.id)
+    if (execution.hasVariable(EARLY_PAYMENT_REQUEST_ID))
+      earlyPaymentRequestId = execution.getVariable(EARLY_PAYMENT_REQUEST_ID)
     else {
       throw new ConfirmEPRAddedException("Unable to confirm payment back to EPR process due to missing execution " +
         "variable [${EARLY_PAYMENT_REQUEST_ID} for the EPR")
@@ -37,8 +37,8 @@ class ConfirmEPRAddedTask implements JavaDelegate {
     log.debug "Using EPR:${earlyPaymentRequestId}"
 
     String batchId
-    if (execution.hasVariable(PAYMENT_BATCH_ID.id))
-      batchId = execution.getVariable(PAYMENT_BATCH_ID.id)
+    if (execution.hasVariable(PAYMENT_BATCH_ID))
+      batchId = execution.getVariable(PAYMENT_BATCH_ID)
     else {
       throw new ConfirmEPRAddedException("Unable to confirm payment back to EPR process due to missing execution " +
         "variable [${PAYMENT_BATCH_ID} for the payment batch")
@@ -49,13 +49,13 @@ class ConfirmEPRAddedTask implements JavaDelegate {
 
     Execution confirmEPRAddedTask = runtimeService.createExecutionQuery()
       .processInstanceBusinessKey((String)earlyPaymentRequestId)
-      .activityId(CONFIRM_EPR_ADDED_TASK.id)
+      .activityId(CONFIRM_EPR_ADDED_TASK)
       .singleResult()
 
     if (confirmEPRAddedTask) {
       runtimeService.signal(confirmEPRAddedTask.id,
         [
-          (PAYMENT_BATCH_ID.id): batchId
+          (PAYMENT_BATCH_ID): batchId
         ])
     } else {
       throw new ReceiveEPRException("Unable to find the EPR Process instance with epr key [${earlyPaymentRequestId}]")

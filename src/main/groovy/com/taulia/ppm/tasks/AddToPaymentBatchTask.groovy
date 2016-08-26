@@ -27,14 +27,15 @@ class AddToPaymentBatchTask implements JavaDelegate {
     println "Hello world : addToPaymentBatchTask"
 
     String earlyPaymentRequestId
-    if (execution.hasVariable(EARLY_PAYMENT_REQUEST_ID.id))
-      earlyPaymentRequestId = execution.getVariable(EARLY_PAYMENT_REQUEST_ID.id)
+    if (execution.hasVariable(EARLY_PAYMENT_REQUEST_ID))
+      earlyPaymentRequestId = execution.getVariable(EARLY_PAYMENT_REQUEST_ID)
     else {
       throw new AddToPaymentBatchException("Unable to find the EPR to add to the batch in this execution")
     }
 
+    println "Adding EPR:[$earlyPaymentRequestId] to batch"
     VariableInstance variableInstance = runtimeService.createVariableInstanceQuery()
-      .variableName(PAYMENT_BATCH.id)
+      .variableName(PAYMENT_BATCH)
       .singleResult()
 
     List<String> paymentBatch
@@ -44,6 +45,6 @@ class AddToPaymentBatchTask implements JavaDelegate {
       paymentBatch = new ArrayList<String>()
     }
     paymentBatch.add(earlyPaymentRequestId)
-    runtimeService.setVariable(execution.id,PAYMENT_BATCH.id,paymentBatch)
+    runtimeService.setVariable(execution.id,PAYMENT_BATCH,paymentBatch)
   }
 }

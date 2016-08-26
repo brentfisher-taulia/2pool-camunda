@@ -13,28 +13,10 @@ package com.taulia.ppm.tasks
  * Any rights not expressly granted herein are reserved by Taulia.
  */
 
-public enum ProcessVariables {
+public interface ProcessVariables {
 
-  VALIDATION_RETRY_COUNT("VALIDATION_RETRY_COUNT"),
-  VALIDATION_ERROR_TASK_ID("VALIDATION_ERROR_TASK_ID"),
-  PAYMENT_PROCESSOR("PAYMENT_PROCESSOR"),
-  EARLY_PAYMENT_REQUEST_ID('earlyPaymentRequestId'),
-  PAYMENT_BATCH_ID('paymentBatchId'),
-  PAYMENT_BATCH('paymentBatch'),
-  BANK_COUNTRY('bankCountry'),
-  IS_BUYER_ACK_EXEMPT('isBuyerAckExempt'),
-  INVOICE_STATUS('invoiceStatus'),
-
-
-
-  final String id
-
-  ProcessVariables(String id) {
-    this.id = id
-  }
-
-  public String toString() {
-    id
-  }
+  public static final String EARLY_PAYMENT_REQUEST_ID = "earlyPaymentRequestId"
+  public static final String PAYMENT_BATCH_ID = "paymentBatchId"
+  public static final String PAYMENT_BATCH = "paymentBatch"
 
 }

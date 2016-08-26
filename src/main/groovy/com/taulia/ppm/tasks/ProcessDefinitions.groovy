@@ -13,23 +13,12 @@ package com.taulia.ppm.tasks
  * Any rights not expressly granted herein are reserved by Taulia.
  */
 
-public enum ProcessDefinitions {
+public class ProcessDefinitions {
 
-  BATCH_PROCESS('batchProcess'),
-  EPR_PROCESS('EPRProcess'),
-  RECEIVE_EPR_TASK('receiveEPRTask'),
-  CONFIRM_EPR_ADDED_TASK('confirmEPRAddedTask'),
-  ADD_TO_PAYMENT_BATCH_TASK('addToPaymentBatchTask'),
-
-
-  final String id
-
-  ProcessDefinitions(String id) {
-    this.id = id
-  }
-
-  public String toString() {
-    id
-  }
+  public static final String BATCH_PROCESS = 'batchProcess'
+  public static final String EPR_PROCESS = 'EPRProcess'
+  public static final String RECEIVE_EPR_TASK = 'receiveEPRTask'
+  public static final String CONFIRM_EPR_ADDED_TASK = 'confirmEPRAddedTask'
+  public static final String ADD_TO_PAYMENT_BATCH_TASK = 'addToPaymentBatchTask'
 
 }

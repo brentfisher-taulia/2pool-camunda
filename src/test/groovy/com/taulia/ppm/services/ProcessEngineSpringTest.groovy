@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals
 @ContextConfiguration(classes = [
   TestPaymentProcessEngineConfiguration,
 ])
-class ProcessEngineSpringTest  {
+class ProcessEngineSpringTest {
 
   @Autowired
   HistoryService historyService
@@ -52,42 +52,55 @@ class ProcessEngineSpringTest  {
   public void testBatches() {
     String batchId = "batch-11"
     println "Starting ${BATCH_PROCESS} with key:[${batchId}]"
-    ProcessInstance batchProcess = runtimeService.startProcessInstanceByKey(BATCH_PROCESS.id,
+    ProcessInstance batchProcess = runtimeService.startProcessInstanceByKey(BATCH_PROCESS,
       batchId,
       [
-        (PAYMENT_BATCH_ID.id):batchId
+        (PAYMENT_BATCH_ID): batchId
       ]
     )
     assert batchProcess
     Execution receiveEPRTask = runtimeService.createExecutionQuery()
-      .activityId(RECEIVE_EPR_TASK.id)
+      .activityId(RECEIVE_EPR_TASK)
       .singleResult()
 
 
     assert receiveEPRTask
 
 
-    int numEprs = 1
+    int numEprs = 10
     (1..numEprs).each { index ->
       String earlyPaymentRequestId = "EPR-$index"
 
-      println "Starting EPR Process with key:[$earlyPaymentRequestId"
-      ProcessInstance eprProcess = runtimeService.startProcessInstanceByKey(EPR_PROCESS.id,
+      println "Starting EPR Process with key:[$earlyPaymentRequestId]"
+      ProcessInstance eprProcess = runtimeService.startProcessInstanceByKey(EPR_PROCESS,
         earlyPaymentRequestId,
         [
-          (EARLY_PAYMENT_REQUEST_ID.id): earlyPaymentRequestId
+          (EARLY_PAYMENT_REQUEST_ID): earlyPaymentRequestId
         ]
       )
+      println "EPR Process Instance ID:[${eprProcess.id}]"
+
 
       assert eprProcess
     }
 
     boolean batchProcessingIsFinished = false
-    while(!batchProcessingIsFinished) {
-      List<JobDefinition> jobDefinitions = managementService.createJobQuery().list()
+    while (!batchProcessingIsFinished) {
+      List<JobDefinition> jobDefinitions =
+        managementService.createJobQuery()
+          .list()
       println "Found [${jobDefinitions?.size()}] job definition(s) to execute"
 
-        managementService.executeJob(jobDefinitions[1].id)
+      jobDefinitions.each {
+        if (!BATCH_PROCESS.equals(it.processDefinitionKey)) {
+          println "Executing Job:[${it.getProcessDefinitionId()}]"
+
+          managementService.executeJob(it.id)
+        } else {
+          println "Skipped job [$it]"
+        }
+      }
+
 
       println "Finished executing [${jobDefinitions?.size()}] job definition(s)."
 
@@ -95,20 +108,37 @@ class ProcessEngineSpringTest  {
         .processInstanceBusinessKey(batchId)
         .singleResult()
 
-      batchProcessingIsFinished = null!=pi
+      batchProcessingIsFinished = null != pi
 
       println "Waiting on the batch processing to finish"
       Thread.sleep(1000)
     }
 
-    VariableInstance variableInstance = historyService.createHistoricVariableInstanceQuery()
-      .processInstanceId(batchProcess.id)
-      .variableId(PAYMENT_BATCH.id)
-      .singleResult()
+    println "Batch Process ID:[$batchProcess.id]"
+    List<VariableInstance> variableInstances =
+      runtimeService.createVariableInstanceQuery()
+        .processInstanceIdIn(batchProcess.id)
+        .list()
 
+    println "Batch Process Instance ID:[${batchProcess.id}]"
 
-    println "Payment Batch:[${variableInstance?.value}]"
-    assert numEprs == variableInstance.value.size()
+    variableInstances.each { variableInstance ->
+      println "Variable:[${variableInstance?.name}:${variableInstance?.value}]"
+      println "Variable:{${variableInstance}]"
+    }
+    int numBatches = 1
+    int numBatchIds = 1
+    int numEPRsAtParentScope = 1
+    assert numEPRsAtParentScope + numBatches + numBatchIds == variableInstances.size()
+
+    VariableInstance batchProcessVariable =
+      runtimeService.createVariableInstanceQuery()
+        .processInstanceIdIn(batchProcess.id)
+        .variableName(PAYMENT_BATCH)
+        .singleResult()
+
+    assert batchProcessVariable
+    assert numEprs == batchProcessVariable.value.size()
 
   }
 
