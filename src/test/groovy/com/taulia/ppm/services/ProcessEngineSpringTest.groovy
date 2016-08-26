@@ -6,6 +6,7 @@ import org.camunda.bpm.engine.HistoryService
 import org.camunda.bpm.engine.ManagementService
 import org.camunda.bpm.engine.RuntimeService
 import org.camunda.bpm.engine.TaskService
+import org.camunda.bpm.engine.history.HistoricVariableInstance
 import org.camunda.bpm.engine.management.JobDefinition
 import org.camunda.bpm.engine.runtime.Execution
 import org.camunda.bpm.engine.runtime.ProcessInstance
@@ -135,9 +136,9 @@ class ProcessEngineSpringTest {
     int numEPRsAtParentScope = 1
     assert numEPRsAtParentScope + numBatches + numBatchIds == variableInstances.size()
 
-    VariableInstance batchProcessVariable =
-      runtimeService.createVariableInstanceQuery()
-        .processInstanceIdIn(batchProcess.id)
+    HistoricVariableInstance batchProcessVariable =
+      historyService.createHistoricVariableInstanceQuery()
+        .processInstanceId(batchProcess.id)
         .variableName(PAYMENT_BATCH)
         .singleResult()
 
