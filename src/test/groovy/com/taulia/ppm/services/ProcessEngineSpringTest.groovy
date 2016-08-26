@@ -1,6 +1,7 @@
 package com.taulia.ppm.services
 
 import com.taulia.ppm.config.TestPaymentProcessEngineConfiguration
+import com.taulia.ppm.util.ProcessDiagramService
 import org.camunda.bpm.engine.HistoryService
 import org.camunda.bpm.engine.ManagementService
 import org.camunda.bpm.engine.RuntimeService
@@ -46,6 +47,9 @@ class ProcessEngineSpringTest {
 
   @Autowired
   ManagementService managementService
+
+  @Autowired
+  ProcessDiagramService processDiagramService
 
   @Test
   @Deployment(resources = ['payment-batch.bpmn'])
@@ -140,6 +144,13 @@ class ProcessEngineSpringTest {
     assert batchProcessVariable
     assert numEprs == batchProcessVariable.value.size()
 
+    println "Jobs left to run"
+    managementService.createJobQuery()
+      .list()
+      .each {
+      println it
+      processDiagramService.writeDiagramToFile(it.processInstanceId,"job:${it.processDefinitionId}.png")
+    }
   }
 
 }
