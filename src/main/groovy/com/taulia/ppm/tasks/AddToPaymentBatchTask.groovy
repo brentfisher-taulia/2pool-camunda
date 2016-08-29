@@ -35,6 +35,7 @@ class AddToPaymentBatchTask implements JavaDelegate {
 
     println "Adding EPR:[$earlyPaymentRequestId] to batch"
     VariableInstance variableInstance = runtimeService.createVariableInstanceQuery()
+      .processInstanceIdIn(execution.processInstanceId)
       .variableName(PAYMENT_BATCH)
       .singleResult()
 

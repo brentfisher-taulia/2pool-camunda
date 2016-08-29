@@ -61,12 +61,12 @@ class ProcessEngineSpringTest {
     ProcessInstance batchProcess = kickOffBatchProcess()
 
 
-    int numEprs = 10
-    double ratio = 0.50  // eprs to batch
+
+    int numEprs = 100
+    double ratio = 0.20  // eprs to batch
     kickOffEPRProcesses(numEprs,ratio)
 
 
-    checkVariablesPopulated(batchProcess, numEprs)
 
 
     checkBackgroundJobsLeftToRun()
@@ -82,11 +82,12 @@ class ProcessEngineSpringTest {
     }
   }
 
-  private void checkVariablesPopulated(ProcessInstance batchProcess, int numEprs) {
-    println "Batch Process ID:[$batchProcess.id]"
+  private void checkVariablesPopulated(String batchProcessInstanceId, int numEprs) {
+
+    println "Batch Process ID:[$batchProcessInstanceId]"
     List<VariableInstance> variableInstances =
       runtimeService.createVariableInstanceQuery()
-        .processInstanceIdIn(batchProcess.id)
+        .processInstanceIdIn(batchProcessInstanceId)
         .list()
 
 
@@ -94,44 +95,60 @@ class ProcessEngineSpringTest {
       println "Variable:[${variableInstance?.name}:${variableInstance?.value}]"
       println "Variable:{${variableInstance}]"
     }
-    int numBatches = 1
-    int numBatchIds = 1
-    int numEPRsAtParentScope = 1
-    assert numEPRsAtParentScope + numBatches + numBatchIds == variableInstances.size()
 
-    HistoricVariableInstance batchProcessVariable =
-      historyService.createHistoricVariableInstanceQuery()
-        .processInstanceId(batchProcess.id)
+    VariableInstance batchProcessVariable =
+      runtimeService.createVariableInstanceQuery()
+        .processInstanceIdIn(batchProcessInstanceId)
         .variableName(PAYMENT_BATCH)
         .singleResult()
 
     assert batchProcessVariable
-    assert numEprs == batchProcessVariable.value.size()
+    assert numEprs*2 >= batchProcessVariable.value.size()
+    assert 0 <= batchProcessVariable.value.size()
 
   }
 
-  private void runBackgroundJobs() {
-    List<Job> jobDefinitions =
+  private void runBatchEprTaskJobs() {
+    List<Job> sendEPRJobs =
       managementService.createJobQuery()
+        .activityId("batchEprTask")
         .list()
-    println "Found [${jobDefinitions?.size()}] job definition(s) to execute"
+    println "Found [${sendEPRJobs?.size()}] batch EPR task jobs to execute"
 
-    List<Job> sendEPRJobs = jobDefinitions.findAll { !BATCH_PROCESS.equals(it.processDefinitionKey)}
-    Job closeBatchJob = jobDefinitions.find { BATCH_PROCESS.equals(it.processDefinitionKey)} as Job
+    Job closeBatchJob = managementService.createJobQuery()
+      .activityId("closeBatchTimerBoundarEvent")
+    .singleResult()
+
     assert closeBatchJob
 
-    sendEPRJobs.eachWithIndex { jd,index ->
-      println "Executing Job:[${jd.getProcessDefinitionId()}]"
+    println "Kicking off another batch"
+    printActivityInstanceTree(closeBatchJob.processInstanceId)
+    int indexToExecuteCloseBatchJob = Math.random()* sendEPRJobs.size()
+    sendEPRJobs.eachWithIndex { it,index->
+      if(index== indexToExecuteCloseBatchJob){
+        managementService.executeJob(closeBatchJob.id)
+      }
+      printActivityInstanceTree(it.processInstanceId)
 
-      managementService.executeJob(jd.id)
+      println "Executing Job:[${it.getProcessDefinitionId()}]"
+
+      managementService.executeJob(it.id)
     }
-    println "Kicking off another branch"
-    managementService.executeJob(closeBatchJob.id)
+    checkVariablesPopulated(closeBatchJob.processInstanceId, sendEPRJobs.size())
+
+
+
   }
 
-
+  public void printActivityInstanceTree(String pid) {
+    println("---------------- Activity Instance Tree ----------------");
+    println(runtimeService.getActivityInstance(pid));
+    println("----------------------------------------------------");
+  }
   private List<Integer> kickOffEPRProcesses(int numEprs,double ratio) {
+
     int numberOfEprsPerBatchMax = numEprs*ratio
+    println "Number of Eprs per batch max:[$numberOfEprsPerBatchMax]"
     int countOfEprsPerBatch = 0
     (1..numEprs).each { index ->
       String earlyPaymentRequestId = "EPR-$index"
@@ -148,7 +165,7 @@ class ProcessEngineSpringTest {
       if(countOfEprsPerBatch>=numberOfEprsPerBatchMax)
       {
         countOfEprsPerBatch = 0
-        runBackgroundJobs()
+        runBatchEprTaskJobs()
       }
 
       assert eprProcess
