@@ -13,12 +13,14 @@ package com.taulia.ppm.tasks
  * Any rights not expressly granted herein are reserved by Taulia.
  */
 
-public class ProcessDefinitions {
+class ProcessDefinitions {
 
-  public static final String BATCH_PROCESS = 'batchProcess'
-  public static final String EPR_PROCESS = 'EPRProcess'
-  public static final String RECEIVE_EPR_TASK = 'receiveEPRTask'
-  public static final String CONFIRM_EPR_ADDED_TASK = 'confirmEPRAddedTask'
-  public static final String ADD_TO_PAYMENT_BATCH_TASK = 'addToPaymentBatchTask'
+  static final String BATCH_PROCESS = 'batchProcess'
+  static final String EPR_PROCESS = 'EPRProcess'
+  static final String RECEIVE_EPR_TASK = 'receiveEPRTask'
+  static final String CONFIRM_EPR_ADDED_TASK = 'confirmEPRAddedTask'
+  static final String ADD_TO_PAYMENT_BATCH_TASK = 'addToPaymentBatchTask'
+  static final String CLOSE_BATCH_JOB_ID = "closeBatchTimerBoundaryEvent"
+  static final String BATCH_EPR_TASK = "batchEprTask"
 
 }

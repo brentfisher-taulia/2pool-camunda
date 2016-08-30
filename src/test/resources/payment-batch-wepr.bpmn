@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.2.0">
+  <bpmn:collaboration id="Collaboration_0zd1hyc">
+    <bpmn:participant id="Participant_1xchqfl" name="Payment Batch" processRef="batchProcess" />
+  </bpmn:collaboration>
+  <bpmn:process id="batchProcess" name="Payment Batch" isExecutable="true">
+    <bpmn:subProcess id="ProcessEPRsInBatchSubProcess" name="Process EPR to Payment Batch">
+      <bpmn:incoming>SequenceFlow_1a51sbl</bpmn:incoming>
+      <bpmn:exclusiveGateway id="xorMergeToReceiveEPR" name="merge">
+        <bpmn:incoming>SequenceFlow_0yb8b2k</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1ssijoy</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1arse1v</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:parallelGateway id="parallelGatewayAfterReceiveEPR" name="process and get another">
+        <bpmn:incoming>SequenceFlow_17rlpgq</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1ssijoy</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_0xinnk2</bpmn:outgoing>
+      </bpmn:parallelGateway>
+      <bpmn:startEvent id="StartEvent_1gpyht4" name="start batch">
+        <bpmn:outgoing>SequenceFlow_0yb8b2k</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_0yb8b2k" sourceRef="StartEvent_1gpyht4" targetRef="xorMergeToReceiveEPR" />
+      <bpmn:sequenceFlow id="SequenceFlow_1ssijoy" sourceRef="parallelGatewayAfterReceiveEPR" targetRef="xorMergeToReceiveEPR" />
+      <bpmn:sendTask id="confirmAddedTask" name="confirm added" camunda:delegateExpression="${confirmEPRAddedTask}">
+        <bpmn:incoming>SequenceFlow_0xinnk2</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_150lwlm</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_0xinnk2" sourceRef="parallelGatewayAfterReceiveEPR" targetRef="confirmAddedTask" />
+      <bpmn:endEvent id="EndEvent_1ajigr6" name="end">
+        <bpmn:incoming>SequenceFlow_150lwlm</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_150lwlm" sourceRef="confirmAddedTask" targetRef="EndEvent_1ajigr6" />
+      <bpmn:subProcess id="SubProcess_0kbjg5v">
+        <bpmn:incoming>SequenceFlow_1arse1v</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_17rlpgq</bpmn:outgoing>
+        <bpmn:sendTask id="batchEprTask" name="batch epr" camunda:asyncBefore="true" camunda:jobPriority="1" camunda:delegateExpression="${sendEPRTask}" />
+        <bpmn:receiveTask id="confirmEPRAddedTask" name="confirm" />
+        <bpmn:userTask id="Task_1mm409t" name="review epr" />
+        <bpmn:receiveTask id="receiveEPRTask" name="receive epr" messageRef="Message_1ae0j4l" />
+      </bpmn:subProcess>
+      <bpmn:sequenceFlow id="SequenceFlow_1arse1v" sourceRef="xorMergeToReceiveEPR" targetRef="SubProcess_0kbjg5v" />
+      <bpmn:sequenceFlow id="SequenceFlow_17rlpgq" sourceRef="SubProcess_0kbjg5v" targetRef="parallelGatewayAfterReceiveEPR" />
+    </bpmn:subProcess>
+    <bpmn:startEvent id="startPaymentBatch" name="start batch processing">
+      <bpmn:outgoing>SequenceFlow_1a51sbl</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent_1shipng">
+      <bpmn:incoming>SequenceFlow_0rqj3i6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_01zq87b" sourceRef="timerBoundarEvent" targetRef="Task_063rw45" />
+    <bpmn:serviceTask id="Task_063rw45" name="start new batch">
+      <bpmn:incoming>SequenceFlow_01zq87b</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ngzwu5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0ngzwu5" sourceRef="Task_063rw45" targetRef="Task_1pz5aeb" />
+    <bpmn:userTask id="Task_1pz5aeb" name="analyze batch">
+      <bpmn:incoming>SequenceFlow_0ngzwu5</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="BoundaryEvent_1wsngc0" name="5 days" attachedToRef="Task_1pz5aeb">
+      <bpmn:outgoing>SequenceFlow_0rqj3i6</bpmn:outgoing>
+      <bpmn:timerEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0rqj3i6" sourceRef="BoundaryEvent_1wsngc0" targetRef="EndEvent_1shipng" />
+    <bpmn:sequenceFlow id="SequenceFlow_1a51sbl" sourceRef="startPaymentBatch" targetRef="ProcessEPRsInBatchSubProcess" />
+    <bpmn:boundaryEvent id="timerBoundarEvent" name="close batch" attachedToRef="ProcessEPRsInBatchSubProcess">
+      <bpmn:outgoing>SequenceFlow_01zq87b</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+  </bpmn:process>
+  <bpmn:message id="Message_1ae0j4l" name="EPRID" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0zd1hyc">
+      <bpmndi:BPMNShape id="Participant_1xchqfl_di" bpmnElement="Participant_1xchqfl">
+        <dc:Bounds x="-150" y="-8" width="1417" height="701" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1j823c4_di" bpmnElement="startPaymentBatch">
+        <dc:Bounds x="-73" y="463" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-100" y="499" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_1a6dq52_di" bpmnElement="batchEprTask">
+        <dc:Bounds x="2003" y="173" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReceiveTask_09ea80s_di" bpmnElement="confirmEPRAddedTask">
+        <dc:Bounds x="2153" y="173" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReceiveTask_0ru6sci_di" bpmnElement="receiveEPRTask">
+        <dc:Bounds x="1854" y="173" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_10us8r1_di" bpmnElement="parallelGatewayAfterReceiveEPR">
+        <dc:Bounds x="451" y="474" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="431" y="524" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1yq9pr0_di" bpmnElement="xorMergeToReceiveEPR" isMarkerVisible="true">
+        <dc:Bounds x="192" y="474" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="172" y="524" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_1rv2h2h_di" bpmnElement="confirmAddedTask">
+        <dc:Bounds x="610" y="459" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubProcess_17q8xw2_di" bpmnElement="ProcessEPRsInBatchSubProcess" isExpanded="true">
+        <dc:Bounds x="34" y="31" width="823" height="591" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1gpyht4_di" bpmnElement="StartEvent_1gpyht4">
+        <dc:Bounds x="57" y="481" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="30" y="517" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0yb8b2k_di" bpmnElement="SequenceFlow_0yb8b2k">
+        <di:waypoint xsi:type="dc:Point" x="93" y="499" />
+        <di:waypoint xsi:type="dc:Point" x="192" y="499" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="145.32201496885313" y="474" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ssijoy_di" bpmnElement="SequenceFlow_1ssijoy">
+        <di:waypoint xsi:type="dc:Point" x="476" y="524" />
+        <di:waypoint xsi:type="dc:Point" x="476" y="594" />
+        <di:waypoint xsi:type="dc:Point" x="221" y="594" />
+        <di:waypoint xsi:type="dc:Point" x="221" y="520" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="305.9401913875598" y="664" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0xinnk2_di" bpmnElement="SequenceFlow_0xinnk2">
+        <di:waypoint xsi:type="dc:Point" x="501" y="499" />
+        <di:waypoint xsi:type="dc:Point" x="610" y="499" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="509.6953709813407" y="474.04808935286195" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1ajigr6_di" bpmnElement="EndEvent_1ajigr6">
+        <dc:Bounds x="739" y="481" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="712" y="517" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_150lwlm_di" bpmnElement="SequenceFlow_150lwlm">
+        <di:waypoint xsi:type="dc:Point" x="710" y="499" />
+        <di:waypoint xsi:type="dc:Point" x="739" y="499" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="680" y="474" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_059ztz2_di" bpmnElement="Task_1mm409t">
+        <dc:Bounds x="2309" y="173" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1shipng_di" bpmnElement="EndEvent_1shipng">
+        <dc:Bounds x="1211.454954954955" y="484" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1184.454954954955" y="520" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_0lchsli_di" bpmnElement="timerBoundarEvent">
+        <dc:Bounds x="839" y="304" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="812" y="340" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1jz0dl6_di" bpmnElement="Task_1pz5aeb">
+        <dc:Bounds x="1038" y="459" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubProcess_0kbjg5v_di" bpmnElement="SubProcess_0kbjg5v" isExpanded="true">
+        <dc:Bounds x="1798" y="120" width="742" height="207" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_01zq87b_di" bpmnElement="SequenceFlow_01zq87b">
+        <di:waypoint xsi:type="dc:Point" x="875" y="322" />
+        <di:waypoint xsi:type="dc:Point" x="937" y="322" />
+        <di:waypoint xsi:type="dc:Point" x="937" y="459" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="861" y="297" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_02x97wq_di" bpmnElement="Task_063rw45">
+        <dc:Bounds x="888" y="459" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ngzwu5_di" bpmnElement="SequenceFlow_0ngzwu5">
+        <di:waypoint xsi:type="dc:Point" x="988" y="499" />
+        <di:waypoint xsi:type="dc:Point" x="1038" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1000" y="490.69530201342286" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BoundaryEvent_01t819i_di" bpmnElement="BoundaryEvent_1wsngc0">
+        <dc:Bounds x="1120" y="495" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1093" y="531" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0rqj3i6_di" bpmnElement="SequenceFlow_0rqj3i6">
+        <di:waypoint xsi:type="dc:Point" x="1156" y="513" />
+        <di:waypoint xsi:type="dc:Point" x="1184" y="513" />
+        <di:waypoint xsi:type="dc:Point" x="1184" y="508.39060402684566" />
+        <di:waypoint xsi:type="dc:Point" x="1213" y="508" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1154" y="500.69530201342286" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1a51sbl_di" bpmnElement="SequenceFlow_1a51sbl">
+        <di:waypoint xsi:type="dc:Point" x="-37" y="481" />
+        <di:waypoint xsi:type="dc:Point" x="10" y="481" />
+        <di:waypoint xsi:type="dc:Point" x="10" y="249" />
+        <di:waypoint xsi:type="dc:Point" x="34" y="249" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-20" y="355" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1arse1v_di" bpmnElement="SequenceFlow_1arse1v">
+        <di:waypoint xsi:type="dc:Point" x="217" y="474" />
+        <di:waypoint xsi:type="dc:Point" x="217" y="368" />
+        <di:waypoint xsi:type="dc:Point" x="1912" y="368" />
+        <di:waypoint xsi:type="dc:Point" x="1912" y="327" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1487.1183453687245" y="356" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_17rlpgq_di" bpmnElement="SequenceFlow_17rlpgq">
+        <di:waypoint xsi:type="dc:Point" x="2169" y="327" />
+        <di:waypoint xsi:type="dc:Point" x="2169" y="383" />
+        <di:waypoint xsi:type="dc:Point" x="484.38255033557044" y="383" />
+        <di:waypoint xsi:type="dc:Point" x="484" y="482" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="766" y="358" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

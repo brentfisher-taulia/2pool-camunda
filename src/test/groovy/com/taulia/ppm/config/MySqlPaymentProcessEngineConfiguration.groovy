@@ -18,7 +18,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
+import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.SimpleDriverDataSource
+import org.springframework.orm.jpa.JpaTransactionManager
+import org.springframework.transaction.PlatformTransactionManager
 
 import javax.sql.DataSource
 
@@ -36,6 +39,7 @@ class MySqlPaymentProcessEngineConfiguration extends TestPaymentProcessEngineCon
 
     return dataSource;
   }
+
 
   @Bean
   @Override
