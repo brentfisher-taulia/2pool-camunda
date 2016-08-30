@@ -47,6 +47,9 @@
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0du77vq" sourceRef="batchEprTask" targetRef="ExclusiveGateway_1f6l9vw" />
     <bpmn:sequenceFlow id="SequenceFlow_0aufelp" sourceRef="ExclusiveGateway_1f6l9vw" targetRef="Task_1mm409t" />
+    <bpmn:boundaryEvent id="BoundaryEvent_1r89d5j" attachedToRef="batchEprTask">
+      <bpmn:errorEventDefinition />
+    </bpmn:boundaryEvent>
   </bpmn:process>
   <bpmn:process id="batchProcess" name="Payment Batch" isExecutable="true">
     <bpmn:subProcess id="ProcessEPRsInBatchSubProcess" name="Process EPR to Payment Batch">
@@ -174,11 +177,11 @@
       <bpmndi:BPMNEdge id="MessageFlow_0aybhuq_di" bpmnElement="MessageFlow_0aybhuq">
         <di:waypoint xsi:type="dc:Point" x="660" y="459" />
         <di:waypoint xsi:type="dc:Point" x="660" y="232" />
-        <di:waypoint xsi:type="dc:Point" x="373" y="232" />
-        <di:waypoint xsi:type="dc:Point" x="373" y="104" />
+        <di:waypoint xsi:type="dc:Point" x="434" y="232" />
+        <di:waypoint xsi:type="dc:Point" x="434" y="104" />
         <di:waypoint xsi:type="dc:Point" x="333" y="104" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="471.5" y="172" width="90" height="20" />
+          <dc:Bounds x="526.0174216027874" y="207" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SendTask_1rv2h2h_di" bpmnElement="confirmAddedTask">
@@ -383,11 +386,11 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0du77vq_di" bpmnElement="SequenceFlow_0du77vq">
-        <di:waypoint xsi:type="dc:Point" x="333" y="202" />
-        <di:waypoint xsi:type="dc:Point" x="507" y="202" />
+        <di:waypoint xsi:type="dc:Point" x="333" y="186" />
+        <di:waypoint xsi:type="dc:Point" x="507" y="186" />
         <di:waypoint xsi:type="dc:Point" x="507" y="152" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="378.6467065868263" y="177" width="90" height="20" />
+          <dc:Bounds x="375" y="145" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0aufelp_di" bpmnElement="SequenceFlow_0aufelp">
@@ -397,6 +400,12 @@
           <dc:Bounds x="539.5" y="101.5" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BoundaryEvent_13z0cy0_di" bpmnElement="BoundaryEvent_1r89d5j">
+        <dc:Bounds x="315" y="200" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="288" y="236" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

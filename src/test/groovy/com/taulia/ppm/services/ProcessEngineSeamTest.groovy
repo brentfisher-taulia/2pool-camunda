@@ -1,6 +1,6 @@
 package com.taulia.ppm.services
 
-import com.taulia.ppm.config.MySqlPaymentProcessEngineConfiguration
+import com.taulia.ppm.config.MySqlPaymentProcessSeamConfiguration
 import com.taulia.ppm.tasks.ProcessDefinitions
 import com.taulia.ppm.tasks.ProcessVariables
 import com.taulia.ppm.util.ProcessDiagramService
@@ -34,9 +34,9 @@ import static org.junit.Assert.assertEquals
 
 @RunWith(Parameterized)
 @ContextConfiguration(classes = [
-  MySqlPaymentProcessEngineConfiguration,
+  MySqlPaymentProcessSeamConfiguration,
 ])
-class ProcessEngineSpringTest {
+class ProcessEngineSeamTest {
 
   private int eprCount
   private int batchSpread
@@ -96,7 +96,7 @@ class ProcessEngineSpringTest {
 
   }
 
-  public ProcessEngineSpringTest(int eprCount, int batchSpread, int eprJobFrequency, int retries, int retrySpread, int eprThreadCt) {
+  public ProcessEngineSeamTest(int eprCount, int batchSpread, int eprJobFrequency, int retries, int retrySpread, int eprThreadCt) {
 
     this.eprThreadCt = eprThreadCt
     this.eprJobFrequency = eprJobFrequency

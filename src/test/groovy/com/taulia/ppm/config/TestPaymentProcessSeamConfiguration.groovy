@@ -35,7 +35,7 @@ import javax.sql.DataSource
 @ComponentScan(
   basePackages = ['com.taulia.ppm']
 )
-class TestPaymentProcessEngineConfiguration  {
+class TestPaymentProcessSeamConfiguration {
 
   @Bean
   public DataSource dataSource() {
